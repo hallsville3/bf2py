@@ -52,7 +52,7 @@ class Compiler(object):
 
             elif char == ',':
                 self.compiled += "\t" * indents
-                self.compiled += "data[ptr] = input(str(ptr) + ': ')\n"
+                self.compiled += "data[ptr] = input('Slot {}: '.format(ptr))\n"
 
             elif char == '[':
                 self.compiled += "\t" * indents

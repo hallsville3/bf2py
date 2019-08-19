@@ -19,4 +19,5 @@ while data[ptr] != 0:
 
 compiler = Compiler("+++++[->+<]")
 compiler.compile()
+
 print compiler.compiled
