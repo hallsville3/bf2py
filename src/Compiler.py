@@ -9,15 +9,20 @@ class Compiler(object):
         self.compiled = None
 
     def compile(self):
+        #Boilerplate Code for any bf2py program
         self.compiled = "data = [0] * 30000\n"
-        self.compiled += "ptr = 0\n"
-        depth = 0
+        self.compiled += "ptr = 0\n\n#bf2py Program Start\n"
 
+        #indents tracks indentation level
+        indents = 0
+
+        #balance tracks the intermediate value of a sequence of +- chars
         balance = 0
 
         for index in range(len(self.bf)):
             char = self.bf[index]
             next_char = "" if index + 1 == len(self.bf) else self.bf[index + 1]
+
             if char in '+-':
                 #This section condenses consecutive +- chars into one line of python
                 if char == '+':
@@ -26,7 +31,7 @@ class Compiler(object):
                     balance -= 1
                 if next_char not in '+-' and balance != 0:
                     #This means that char is the last consecutive + or -
-                    self.compiled += "\t" * depth
+                    self.compiled += "\t" * indents
                     if balance > 0:
                         self.compiled += "data[ptr] += {}\n".format(balance)
                     else:
@@ -34,25 +39,25 @@ class Compiler(object):
                     balance = 0
 
             elif char == '<':
-                self.compiled += "\t" * depth
+                self.compiled += "\t" * indents
                 self.compiled += "ptr -= 1\n"
 
             elif char == '>':
-                self.compiled += "\t" * depth
+                self.compiled += "\t" * indents
                 self.compiled += "ptr += 1\n"
 
             elif char == '.':
-                self.compiled += "\t" * depth
+                self.compiled += "\t" * indents
                 self.compiled += "print(data[ptr])\n"
 
             elif char == ',':
-                self.compiled += "\t" * depth
+                self.compiled += "\t" * indents
                 self.compiled += "data[ptr] = input(str(ptr) + ': ')\n"
 
             elif char == '[':
-                self.compiled += "\t" * depth
+                self.compiled += "\t" * indents
                 self.compiled += "while data[ptr] != 0:\n"
-                depth += 1
+                indents += 1
 
             elif char == ']':
-                depth -= 1
+                indents -= 1
