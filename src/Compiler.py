@@ -29,7 +29,6 @@ class Compiler(object):
             char0 = self.bf[index]
             char1 = "\0" if index + 1 == len(self.bf) else self.bf[index + 1]
             char2 = "\0" if index + 2 >= len(self.bf) else self.bf[index + 2]
-            print "hi"
             if char0 + char1 + char2 == "[-]":
                 self.compiled.append(indent * indent_count + "data[ptr] = 0")
                 index += 2
