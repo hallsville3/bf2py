@@ -29,10 +29,14 @@ class Compiler(object):
             chars = ["\0" if index + i >= len(self.bf) else self.bf[index + i] for i in range(10)]
             char0 = chars[0]
             char1 = chars[1]
+
+            #Major optimizations
             if ''.join(chars[0:3]) == "[-]":
                 #Sets data[ptr] to 0
                 self.compiled.append(indent * indent_count + "data[ptr] = 0")
-                index += 2
+                index += 3
+                continue
+
             elif ''.join(chars[0:3]) == "[->": #[->+<] or [->-<]
                 """
                 Adds or subtracts data[ptr] to data[ptr + x] where x is the number of > and < characters
@@ -46,12 +50,16 @@ class Compiler(object):
                 if ''.join(self.bf[temp_index:temp_index + right_count + 2]) == "+" + "<" * right_count + "]":
                     self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(right_count))
                     self.compiled.append(indent * indent_count + "data[ptr] = 0")
-                    index += 3 + right_count * 2
+                    index += 4 + right_count * 2
+                    continue
                 elif ''.join(self.bf[temp_index:temp_index + right_count + 2]) == "-" + "<" * right_count + "]":
                     self.compiled.append(indent * indent_count + "data[ptr + {}] -= data[ptr]".format(right_count))
                     self.compiled.append(indent * indent_count + "data[ptr] = 0")
-                    index += 3 + right_count * 2
-            elif char0 in '+-':
+                    index += 4 + right_count * 2
+                    continue
+
+            #Regular translation and minor optimizations
+            if char0 in '+-':
                 #This section condenses consecutive +- chars into one line of python
                 if char0 == '+':
                     sum_balance += 1
