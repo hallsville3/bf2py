@@ -14,7 +14,7 @@ data[ptr + 2] += data[ptr]
 data[ptr] = 0
 """
 
-compiler = Compiler("+++++[->>+<<]")
+compiler = Compiler("+++++[->>-<<]")
 compiler.compile()
 
 print compiler.compiled

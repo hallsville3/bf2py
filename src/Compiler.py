@@ -30,9 +30,14 @@ class Compiler(object):
             char0 = chars[0]
             char1 = chars[1]
             if ''.join(chars[0:3]) == "[-]":
+                #Sets data[ptr] to 0
                 self.compiled.append(indent * indent_count + "data[ptr] = 0")
                 index += 2
-            elif ''.join(chars[0:3]) == "[->":
+            elif ''.join(chars[0:3]) == "[->": #[->+<] or [->-<]
+                """
+                Adds or subtracts data[ptr] to data[ptr + x] where x is the number of > and < characters
+                Then sets data[ptr] to 0
+                """
                 temp_index = index + 3
                 right_count = 1
                 while self.bf[temp_index] == '>':
@@ -40,6 +45,10 @@ class Compiler(object):
                     right_count += 1
                 if ''.join(self.bf[temp_index:temp_index + right_count + 2]) == "+" + "<" * right_count + "]":
                     self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(right_count))
+                    self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                    index += 3 + right_count * 2
+                elif ''.join(self.bf[temp_index:temp_index + right_count + 2]) == "-" + "<" * right_count + "]":
+                    self.compiled.append(indent * indent_count + "data[ptr + {}] -= data[ptr]".format(right_count))
                     self.compiled.append(indent * indent_count + "data[ptr] = 0")
                     index += 3 + right_count * 2
             elif char0 in '+-':
