@@ -16,8 +16,9 @@ class Compiler(object):
         #indents tracks indentation level
         indents = 0
 
-        #balance tracks the intermediate value of a sequence of +- chars
-        balance = 0
+        #balance variables track the intermediate value of a sequence of +- chars or <> chars
+        sum_balance = 0
+        location_balance = 0
 
         for index in range(len(self.bf)):
             char = self.bf[index]
@@ -26,36 +27,43 @@ class Compiler(object):
             if char in '+-':
                 #This section condenses consecutive +- chars into one line of python
                 if char == '+':
-                    balance += 1
+                    sum_balance += 1
                 else:
-                    balance -= 1
-                if next_char not in '+-' and balance != 0:
+                    sum_balance -= 1
+                if next_char not in '+-' and sum_balance != 0:
                     #This means that char is the last consecutive + or -
-                    self.compiled += "\t" * indents
-                    if balance > 0:
-                        self.compiled += "data[ptr] += {}\n".format(balance)
+                    self.compiled += "    " * indents
+                    if sum_balance > 0:
+                        self.compiled += "data[ptr] += {}\n".format(sum_balance)
                     else:
-                        self.compiled += "data[ptr] -= {}\n".format(abs(balance))
-                    balance = 0
+                        self.compiled += "data[ptr] -= {}\n".format(abs(sum_balance))
+                    sum_balance = 0
 
-            elif char == '<':
-                self.compiled += "\t" * indents
-                self.compiled += "ptr -= 1\n"
-
-            elif char == '>':
-                self.compiled += "\t" * indents
-                self.compiled += "ptr += 1\n"
+            elif char in '<>':
+                #This section condenses consecutive <> chars into one line of python
+                if char == '>':
+                    location_balance += 1
+                else:
+                    location_balance -= 1
+                if next_char not in '<>' and location_balance != 0:
+                    #This means that char is the last consecutive < or >
+                    self.compiled += "    " * indents
+                    if location_balance > 0:
+                        self.compiled += "ptr += {}\n".format(location_balance)
+                    else:
+                        self.compiled += "ptr -= {}\n".format(abs(location_balance))
+                    location_balance = 0
 
             elif char == '.':
-                self.compiled += "\t" * indents
+                self.compiled += "    " * indents
                 self.compiled += "print(data[ptr])\n"
 
             elif char == ',':
-                self.compiled += "\t" * indents
+                self.compiled += "    " * indents
                 self.compiled += "data[ptr] = input('Slot {}: '.format(ptr))\n"
 
             elif char == '[':
-                self.compiled += "\t" * indents
+                self.compiled += "    " * indents
                 self.compiled += "while data[ptr] != 0:\n"
                 indents += 1
 
