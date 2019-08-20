@@ -26,12 +26,22 @@ class Compiler(object):
 
         index = 0
         while index < len(self.bf):
-            char0 = self.bf[index]
-            char1 = "\0" if index + 1 == len(self.bf) else self.bf[index + 1]
-            char2 = "\0" if index + 2 >= len(self.bf) else self.bf[index + 2]
-            if char0 + char1 + char2 == "[-]":
+            chars = ["\0" if index + i >= len(self.bf) else self.bf[index + i] for i in range(10)]
+            char0 = chars[0]
+            char1 = chars[1]
+            if ''.join(chars[0:3]) == "[-]":
                 self.compiled.append(indent * indent_count + "data[ptr] = 0")
                 index += 2
+            elif ''.join(chars[0:3]) == "[->":
+                temp_index = index + 3
+                right_count = 1
+                while self.bf[temp_index] == '>':
+                    temp_index += 1
+                    right_count += 1
+                if ''.join(self.bf[temp_index:temp_index + right_count + 2]) == "+" + "<" * right_count + "]":
+                    self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(right_count))
+                    self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                    index += 3 + right_count * 2
             elif char0 in '+-':
                 #This section condenses consecutive +- chars into one line of python
                 if char0 == '+':

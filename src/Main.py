@@ -10,11 +10,8 @@ ptr = 0
 
 #bf2py Program Start
 data[ptr] += 5
-while data[ptr] != 0:
-    data[ptr] -= 1
-    ptr += 2
-    data[ptr] += 1
-    ptr -= 2
+data[ptr + 2] += data[ptr]
+data[ptr] = 0
 """
 
 compiler = Compiler("+++++[->>+<<]")
