@@ -26,7 +26,7 @@ class Compiler(object):
 
         for index in range(len(self.bf)):
             char = self.bf[index]
-            next_char = "" if index + 1 == len(self.bf) else self.bf[index + 1]
+            next_char = "\0" if index + 1 == len(self.bf) else self.bf[index + 1]
 
             if char in '+-':
                 #This section condenses consecutive +- chars into one line of python
