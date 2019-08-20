@@ -9,12 +9,16 @@ class Compiler(object):
         self.compiled = None
 
     def compile(self):
-        #Boilerplate Code for any bf2py program
-        self.compiled = "data = [0] * 30000\n"
-        self.compiled += "ptr = 0\n\n#bf2py Program Start\n"
+        self.compiled = []
 
-        #indents tracks indentation level
-        indents = 0
+        #Boilerplate Code for any bf2py program
+        self.compiled.append("data = [0] * 30000")
+        self.compiled.append("ptr = 0\n")
+        self.compiled.append("#bf2py Program Start")
+
+        #indent_count tracks indentation level
+        indent_count = 0
+        indent = "    "
 
         #balance variables track the intermediate value of a sequence of +- chars or <> chars
         sum_balance = 0
@@ -32,11 +36,10 @@ class Compiler(object):
                     sum_balance -= 1
                 if next_char not in '+-' and sum_balance != 0:
                     #This means that char is the last consecutive + or -
-                    self.compiled += "    " * indents
                     if sum_balance > 0:
-                        self.compiled += "data[ptr] += {}\n".format(sum_balance)
+                        self.compiled.append(indent * indent_count + "data[ptr] += {}".format(sum_balance))
                     else:
-                        self.compiled += "data[ptr] -= {}\n".format(abs(sum_balance))
+                        self.compiled.append(indent * indent_count + "data[ptr] -= {}".format(abs(sum_balance)))
                     sum_balance = 0
 
             elif char in '<>':
@@ -47,25 +50,23 @@ class Compiler(object):
                     location_balance -= 1
                 if next_char not in '<>' and location_balance != 0:
                     #This means that char is the last consecutive < or >
-                    self.compiled += "    " * indents
                     if location_balance > 0:
-                        self.compiled += "ptr += {}\n".format(location_balance)
+                        self.compiled.append(indent * indent_count + "ptr += {}".format(location_balance))
                     else:
-                        self.compiled += "ptr -= {}\n".format(abs(location_balance))
+                        self.compiled.append(indent * indent_count + "ptr -= {}".format(abs(location_balance)))
                     location_balance = 0
 
             elif char == '.':
-                self.compiled += "    " * indents
-                self.compiled += "print(data[ptr])\n"
+                self.compiled.append(indent * indent_count + "print(data[ptr])")
 
             elif char == ',':
-                self.compiled += "    " * indents
-                self.compiled += "data[ptr] = input('Slot {}: '.format(ptr))\n"
+                self.compiled.append(indent * indent_count + "data[ptr] = input('Slot {}: '.format(ptr))")
 
             elif char == '[':
-                self.compiled += "    " * indents
-                self.compiled += "while data[ptr] != 0:\n"
-                indents += 1
+                self.compiled.append(indent * indent_count + "while data[ptr] != 0:")
+                indent_count += 1
 
             elif char == ']':
-                indents -= 1
+                indent_count -= 1
+
+        self.compiled = "\n".join(self.compiled)
