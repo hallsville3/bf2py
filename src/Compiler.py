@@ -1,5 +1,6 @@
 import re
 
+
 def clean(bf):
     # Removes any non-bf characters from the given program and returns as a list
     return [char0 for char0 in bf if char0 in "+-<>.,[]"]
@@ -61,7 +62,7 @@ class Compiler(object):
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 4 + count * 2
                         continue
-                    elif re.compile("\[->+\+>+\+<+\]"):
+                    elif re.compile("\[->+\+>+\+<+\]").match(expression):
                         #[->+>+<<]
                         #First we need to count how many > there are in the first two groups
                         counts = [group.count('>') for group in re.compile(">+").findall(expression)]
@@ -70,7 +71,7 @@ class Compiler(object):
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 5 + count * 2
                         continue
-                    elif re.compile("\[->+->+-<+\]"):
+                    elif re.compile("\[->+->+-<+\]").match(expression):
                         #[->->-<<]
                         #First we need to count how many > there are in the first two groups
                         counts = [group.count('>') for group in re.compile(">+").findall(expression)]
@@ -102,7 +103,7 @@ class Compiler(object):
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 4 + count * 2
                         continue
-                    elif re.compile("\[-<+\+<+\+>+\]"):
+                    elif re.compile("\[-<+\+<+\+>+\]").match(expression):
                         #[-<+<+>>]
                         #First we need to count how many < there are in the first two groups
                         counts = [group.count('<') for group in re.compile("<+").findall(expression)]
@@ -111,7 +112,7 @@ class Compiler(object):
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 5 + count * 2
                         continue
-                    elif re.compile("\[-<+-<+->+\]"):
+                    elif re.compile("\[-<+-<+->+\]").match(expression):
                         #[-<-<->>]
                         #First we need to count how many < there are in the first two groups
                         counts = [group.count('<') for group in re.compile("<+").findall(expression)]
@@ -151,7 +152,7 @@ class Compiler(object):
                     location_balance = 0
 
             elif char0 == '.':
-                self.compiled.append(indent * indent_count + "print(data[ptr])")
+                self.compiled.append(indent * indent_count + "print(chr(data[ptr] % 256), end='')")
 
             elif char0 == ',':
                 self.compiled.append(indent * indent_count + "data[ptr] = input('Slot {}: '.format(ptr))")
