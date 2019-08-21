@@ -10,7 +10,7 @@ class Compiler(object):
         self.bf = clean(bf)
         self.compiled = None
 
-    def compile(self):
+    def compile(self, op_level = 2):
         self.compiled = []
 
         #Boilerplate Code for any bf2py program
@@ -33,19 +33,16 @@ class Compiler(object):
             char1 = chars[1]
 
             #Major optimizations
-            if ''.join(chars[0:3]) == "[-]":
+            if ''.join(chars[0:3]) == "[-]" and op_level > 0:
                 #Sets data[ptr] to 0
                 self.compiled.append(indent * indent_count + "data[ptr] = 0")
                 index += 3
                 continue
 
-            elif ''.join(chars[0:3]) == "[->":  #[->+<] or [->-<]
-                """
-                Adds or subtracts data[ptr] to data[ptr + x] where x is the number of > and < characters
-                Then sets data[ptr] to 0
-                """
+            elif ''.join(chars[0:3]) == "[->" and op_level > 1:
+
                 temp_index = index
-                while self.bf[temp_index] != "]":
+                while self.bf[temp_index] != ']':
                     temp_index += 1
 
                 expression = ''.join(self.bf[index:temp_index + 1])
@@ -64,6 +61,65 @@ class Compiler(object):
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 4 + count * 2
                         continue
+                    elif re.compile("\[->+\+>+\+<+\]"):
+                        #[->+>+<<]
+                        #First we need to count how many > there are in the first two groups
+                        counts = [group.count('>') for group in re.compile(">+").findall(expression)]
+                        self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(counts[0]))
+                        self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(sum(counts)))
+                        self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        index += 5 + count * 2
+                        continue
+                    elif re.compile("\[->+->+-<+\]"):
+                        #[->->-<<]
+                        #First we need to count how many > there are in the first two groups
+                        counts = [group.count('>') for group in re.compile(">+").findall(expression)]
+                        self.compiled.append(indent * indent_count + "data[ptr + {}] -= data[ptr]".format(counts[0]))
+                        self.compiled.append(indent * indent_count + "data[ptr + {}] -= data[ptr]".format(sum(counts)))
+                        self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        index += 5 + count * 2
+                        continue
+
+            elif ''.join(chars[0:3]) == "[-<" and op_level > 1:
+
+                temp_index = index
+                while self.bf[temp_index] != ']':
+                    temp_index += 1
+
+                expression = ''.join(self.bf[index:temp_index + 1])
+
+                if expression.count('<') == expression.count('>'):
+                    count = expression.count('<')
+                    if re.compile("\[-<+\+>+\]").match(expression):
+                        #[-<+>]
+                        self.compiled.append(indent * indent_count + "data[ptr - {}] += data[ptr]".format(count))
+                        self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        index += 4 + count * 2
+                        continue
+                    elif re.compile("\[-<+->+\]").match(expression):
+                        #[-<->]
+                        self.compiled.append(indent * indent_count + "data[ptr - {}] -= data[ptr]".format(count))
+                        self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        index += 4 + count * 2
+                        continue
+                    elif re.compile("\[-<+\+<+\+>+\]"):
+                        #[-<+<+>>]
+                        #First we need to count how many < there are in the first two groups
+                        counts = [group.count('<') for group in re.compile("<+").findall(expression)]
+                        self.compiled.append(indent * indent_count + "data[ptr - {}] += data[ptr]".format(counts[0]))
+                        self.compiled.append(indent * indent_count + "data[ptr - {}] += data[ptr]".format(sum(counts)))
+                        self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        index += 5 + count * 2
+                        continue
+                    elif re.compile("\[-<+-<+->+\]"):
+                        #[-<-<->>]
+                        #First we need to count how many < there are in the first two groups
+                        counts = [group.count('<') for group in re.compile("<+").findall(expression)]
+                        self.compiled.append(indent * indent_count + "data[ptr - {}] -= data[ptr]".format(counts[0]))
+                        self.compiled.append(indent * indent_count + "data[ptr - {}] -= data[ptr]".format(sum(counts)))
+                        self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        index += 5 + count * 2
+                        continue
 
             #Regular translation and minor optimizations
             if char0 in '+-':
@@ -72,7 +128,7 @@ class Compiler(object):
                     sum_balance += 1
                 else:
                     sum_balance -= 1
-                if char1 not in '+-' and sum_balance != 0:
+                if char1 not in '+-' and sum_balance != 0 or op_level == 0:
                     #This means that char0 is the last consecutive + or -
                     if sum_balance > 0:
                         self.compiled.append(indent * indent_count + "data[ptr] += {}".format(sum_balance))
@@ -86,7 +142,7 @@ class Compiler(object):
                     location_balance += 1
                 else:
                     location_balance -= 1
-                if char1 not in '<>' and location_balance != 0:
+                if char1 not in '<>' and location_balance != 0 or op_level == 0:
                     #This means that char0 is the last consecutive < or >
                     if location_balance > 0:
                         self.compiled.append(indent * indent_count + "ptr += {}".format(location_balance))
