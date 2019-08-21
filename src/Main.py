@@ -25,9 +25,13 @@ Optimization Levels
     0: No Optimization
     1: Basic +- and <> Condensing and [-]
     2: Single and Double movement [->+<], [-<+>], [->-<], [-<->] and [->+>+<<], [->->-<<], [-<+<+>>], [-<-<->>]
+    
+Cap
+    An optional parameter that allows the user to cap the value of the cells
 """
 
+
 compiler = Compiler("+++++[->+>+<<]>>[-<<+>>]")
-compiler.compile(op_level=2)
+compiler.compile(op_level=2, cap=0)
 
 print compiler.compiled

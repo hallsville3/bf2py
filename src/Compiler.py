@@ -11,7 +11,7 @@ class Compiler(object):
         self.bf = clean(bf)
         self.compiled = None
 
-    def compile(self, op_level = 2):
+    def compile(self, op_level=2, cap=0):
         self.compiled = []
 
         #Boilerplate Code for any bf2py program
@@ -52,13 +52,23 @@ class Compiler(object):
                     count = expression.count('<')
                     if re.compile("\[->+\+<+\]").match(expression):
                         #[->+<]
-                        self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(count))
+                        if cap:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr + {}] = (data[ptr + {}] + data[ptr]) % {}"
+                                .format(count, count, cap))
+                        else:
+                            self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(count))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 4 + count * 2
                         continue
                     elif re.compile("\[->+-<+\]").match(expression):
                         #[->-<]
-                        self.compiled.append(indent * indent_count + "data[ptr + {}] -= data[ptr]".format(count))
+                        if cap:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr + {}] = (data[ptr + {}] - data[ptr]) % {}"
+                                .format(count, count, cap))
+                        else:
+                            self.compiled.append(indent * indent_count + "data[ptr + {}] -= data[ptr]".format(count))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 4 + count * 2
                         continue
@@ -66,8 +76,19 @@ class Compiler(object):
                         #[->+>+<<]
                         #First we need to count how many > there are in the first two groups
                         counts = [group.count('>') for group in re.compile(">+").findall(expression)]
-                        self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(counts[0]))
-                        self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(sum(counts)))
+                        if cap:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr + {}] = (data[ptr + {}] + data[ptr]) % {}"
+                                .format(counts[0], counts[0], cap))
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr + {}] = (data[ptr + {}] + data[ptr]) % {}"
+                                .format(sum(counts), sum(counts), cap))
+                        else:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr + {}] += data[ptr]".format(counts[0]))
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr + {}] += data[ptr]".format(sum(counts)))
+
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 5 + count * 2
                         continue
@@ -75,8 +96,18 @@ class Compiler(object):
                         #[->->-<<]
                         #First we need to count how many > there are in the first two groups
                         counts = [group.count('>') for group in re.compile(">+").findall(expression)]
-                        self.compiled.append(indent * indent_count + "data[ptr + {}] -= data[ptr]".format(counts[0]))
-                        self.compiled.append(indent * indent_count + "data[ptr + {}] -= data[ptr]".format(sum(counts)))
+                        if cap:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr + {}] = (data[ptr + {}] - data[ptr]) % {}"
+                                .format(counts[0], counts[0], cap))
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr + {}] = (data[ptr + {}] - data[ptr]) % {}"
+                                .format(sum(counts), sum(counts), cap))
+                        else:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr + {}] -= data[ptr]".format(counts[0]))
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr + {}] -= data[ptr]".format(sum(counts)))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 5 + count * 2
                         continue
@@ -93,13 +124,23 @@ class Compiler(object):
                     count = expression.count('<')
                     if re.compile("\[-<+\+>+\]").match(expression):
                         #[-<+>]
-                        self.compiled.append(indent * indent_count + "data[ptr - {}] += data[ptr]".format(count))
+                        if cap:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr - {}] = (data[ptr - {}] + data[ptr]) % {}"
+                                .format(count, count, cap))
+                        else:
+                            self.compiled.append(indent * indent_count + "data[ptr - {}] += data[ptr]".format(count))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 4 + count * 2
                         continue
                     elif re.compile("\[-<+->+\]").match(expression):
                         #[-<->]
-                        self.compiled.append(indent * indent_count + "data[ptr - {}] -= data[ptr]".format(count))
+                        if cap:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr - {}] = (data[ptr - {}] - data[ptr]) % {}"
+                                .format(count, count, cap))
+                        else:
+                            self.compiled.append(indent * indent_count + "data[ptr - {}] -= data[ptr]".format(count))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 4 + count * 2
                         continue
@@ -107,8 +148,18 @@ class Compiler(object):
                         #[-<+<+>>]
                         #First we need to count how many < there are in the first two groups
                         counts = [group.count('<') for group in re.compile("<+").findall(expression)]
-                        self.compiled.append(indent * indent_count + "data[ptr - {}] += data[ptr]".format(counts[0]))
-                        self.compiled.append(indent * indent_count + "data[ptr - {}] += data[ptr]".format(sum(counts)))
+                        if cap:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr - {}] = (data[ptr - {}] + data[ptr]) % {}"
+                                .format(counts[0], counts[0], cap))
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr - {}] = (data[ptr - {}] + data[ptr]) % {}"
+                                .format(sum(counts), sum(counts), cap))
+                        else:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr - {}] += data[ptr]".format(counts[0]))
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr - {}] += data[ptr]".format(sum(counts)))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 5 + count * 2
                         continue
@@ -116,8 +167,18 @@ class Compiler(object):
                         #[-<-<->>]
                         #First we need to count how many < there are in the first two groups
                         counts = [group.count('<') for group in re.compile("<+").findall(expression)]
-                        self.compiled.append(indent * indent_count + "data[ptr - {}] -= data[ptr]".format(counts[0]))
-                        self.compiled.append(indent * indent_count + "data[ptr - {}] -= data[ptr]".format(sum(counts)))
+                        if cap:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr - {}] = (data[ptr - {}] - data[ptr]) % {}"
+                                .format(counts[0], counts[0], cap))
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr - {}] = (data[ptr - {}] - data[ptr]) % {}"
+                                .format(sum(counts), sum(counts), cap))
+                        else:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr - {}] -= data[ptr]".format(counts[0]))
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr - {}] -= data[ptr]".format(sum(counts)))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
                         index += 5 + count * 2
                         continue
@@ -132,9 +193,23 @@ class Compiler(object):
                 if op_level == 0 or char1 not in '+-' and sum_balance != 0:
                     #This means that char0 is the last consecutive + or -
                     if sum_balance > 0:
-                        self.compiled.append(indent * indent_count + "data[ptr] += {}".format(sum_balance))
+                        if cap:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr] = (data[ptr] + {}) % {}"
+                                .format(sum_balance, cap))
+                        else:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr] += {}"
+                                .format(sum_balance))
                     else:
-                        self.compiled.append(indent * indent_count + "data[ptr] -= {}".format(abs(sum_balance)))
+                        if cap:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr] = (data[ptr] - {}) % {}"
+                                .format(abs(sum_balance), cap))
+                        else:
+                            self.compiled.append(
+                                indent * indent_count + "data[ptr] -= {}"
+                                .format(abs(sum_balance)))
                     sum_balance = 0
 
             elif char0 in '<>':
@@ -156,6 +231,9 @@ class Compiler(object):
 
             elif char0 == ',':
                 self.compiled.append(indent * indent_count + "data[ptr] = input('Slot {}: '.format(ptr))")
+                if cap:
+                    self.compiled.append(
+                        indent * indent_count + "data[ptr] = input('Slot {}: '.format(ptr)) % " + str(cap))
 
             elif char0 == '[':
                 self.compiled.append(indent * indent_count + "while data[ptr] != 0:")
