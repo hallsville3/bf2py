@@ -34,13 +34,13 @@ class Compiler(object):
             char1 = chars[1]
 
             #Major optimizations
-            if ''.join(chars[0:3]) == "[-]" and op_level > 0:
+            if op_level > 0 and ''.join(chars[0:3]) == "[-]":
                 #Sets data[ptr] to 0
                 self.compiled.append(indent * indent_count + "data[ptr] = 0")
                 index += 3
                 continue
 
-            elif ''.join(chars[0:3]) == "[->" and op_level > 1:
+            elif op_level > 1 and ''.join(chars[0:3]) == "[->":
 
                 temp_index = index
                 while self.bf[temp_index] != ']':
@@ -81,7 +81,7 @@ class Compiler(object):
                         index += 5 + count * 2
                         continue
 
-            elif ''.join(chars[0:3]) == "[-<" and op_level > 1:
+            elif op_level > 1 and ''.join(chars[0:3]) == "[-<":
 
                 temp_index = index
                 while self.bf[temp_index] != ']':
@@ -129,7 +129,7 @@ class Compiler(object):
                     sum_balance += 1
                 else:
                     sum_balance -= 1
-                if char1 not in '+-' and sum_balance != 0 or op_level == 0:
+                if op_level == 0 or char1 not in '+-' and sum_balance != 0:
                     #This means that char0 is the last consecutive + or -
                     if sum_balance > 0:
                         self.compiled.append(indent * indent_count + "data[ptr] += {}".format(sum_balance))
@@ -143,7 +143,7 @@ class Compiler(object):
                     location_balance += 1
                 else:
                     location_balance -= 1
-                if char1 not in '<>' and location_balance != 0 or op_level == 0:
+                if op_level == 0 or char1 not in '<>' and location_balance != 0:
                     #This means that char0 is the last consecutive < or >
                     if location_balance > 0:
                         self.compiled.append(indent * indent_count + "ptr += {}".format(location_balance))
