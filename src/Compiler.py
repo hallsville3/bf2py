@@ -1,3 +1,5 @@
+import re
+
 def clean(bf):
     # Removes any non-bf characters from the given program and returns as a list
     return [char0 for char0 in bf if char0 in "+-<>.,[]"]
@@ -37,26 +39,31 @@ class Compiler(object):
                 index += 3
                 continue
 
-            elif ''.join(chars[0:3]) == "[->": #[->+<] or [->-<]
+            elif ''.join(chars[0:3]) == "[->":  #[->+<] or [->-<]
                 """
                 Adds or subtracts data[ptr] to data[ptr + x] where x is the number of > and < characters
                 Then sets data[ptr] to 0
                 """
-                temp_index = index + 3
-                right_count = 1
-                while self.bf[temp_index] == '>':
+                temp_index = index
+                while self.bf[temp_index] != "]":
                     temp_index += 1
-                    right_count += 1
-                if ''.join(self.bf[temp_index:temp_index + right_count + 2]) == "+" + "<" * right_count + "]":
-                    self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(right_count))
-                    self.compiled.append(indent * indent_count + "data[ptr] = 0")
-                    index += 4 + right_count * 2
-                    continue
-                elif ''.join(self.bf[temp_index:temp_index + right_count + 2]) == "-" + "<" * right_count + "]":
-                    self.compiled.append(indent * indent_count + "data[ptr + {}] -= data[ptr]".format(right_count))
-                    self.compiled.append(indent * indent_count + "data[ptr] = 0")
-                    index += 4 + right_count * 2
-                    continue
+
+                expression = ''.join(self.bf[index:temp_index + 1])
+
+                if expression.count('<') == expression.count('>'):
+                    count = expression.count('<')
+                    if re.compile("\[->+\+<+\]").match(expression):
+                        #[->+<]
+                        self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(count))
+                        self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        index += 4 + count * 2
+                        continue
+                    elif re.compile("\[->+-<+\]").match(expression):
+                        #[->-<]
+                        self.compiled.append(indent * indent_count + "data[ptr + {}] -= data[ptr]".format(count))
+                        self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        index += 4 + count * 2
+                        continue
 
             #Regular translation and minor optimizations
             if char0 in '+-':
