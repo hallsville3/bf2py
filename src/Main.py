@@ -30,8 +30,11 @@ Cap
     An optional parameter that allows the user to cap the value of the cells
 """
 
+optimization_level = 2
+
 
 compiler = Compiler("+++++[->+>+<<]>>[-<<+>>]")
-compiler.compile(op_level=2, cap=0)
+compiler.compile(op_level=optimization_level, cap=0)
 
 print compiler.compiled
+print compiler.log

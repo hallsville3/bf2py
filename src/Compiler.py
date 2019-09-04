@@ -10,6 +10,8 @@ class Compiler(object):
     def __init__(self, bf):
         self.bf = clean(bf)
         self.compiled = None
+        self.log = ""
+        self.line_count = 0
 
     def compile(self, op_level=2, cap=0):
         self.compiled = []
@@ -18,6 +20,8 @@ class Compiler(object):
         self.compiled.append("data = [0] * 30000")
         self.compiled.append("ptr = 0\n")
         self.compiled.append("#bf2py Program Start")
+
+        self.line_count = 2
 
         #indent_count tracks indentation level
         indent_count = 0
@@ -34,13 +38,14 @@ class Compiler(object):
             char1 = chars[1]
 
             #Major optimizations
-            if op_level > 0 and ''.join(chars[0:3]) == "[-]":
+            if op_level >= 1 and ''.join(chars[0:3]) == "[-]":
                 #Sets data[ptr] to 0
                 self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                self.line_count += 1
                 index += 3
                 continue
 
-            elif op_level > 1 and ''.join(chars[0:3]) == "[->":
+            elif op_level >= 2 and ''.join(chars[0:3]) == "[->":
 
                 temp_index = index
                 while self.bf[temp_index] != ']':
@@ -59,6 +64,8 @@ class Compiler(object):
                         else:
                             self.compiled.append(indent * indent_count + "data[ptr + {}] += data[ptr]".format(count))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        self.line_count += 2
+
                         index += 4 + count * 2
                         continue
                     elif re.compile("\[->+-<+\]").match(expression):
@@ -70,6 +77,8 @@ class Compiler(object):
                         else:
                             self.compiled.append(indent * indent_count + "data[ptr + {}] -= data[ptr]".format(count))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        self.line_count += 2
+
                         index += 4 + count * 2
                         continue
                     elif re.compile("\[->+\+>+\+<+\]").match(expression):
@@ -90,6 +99,8 @@ class Compiler(object):
                                 indent * indent_count + "data[ptr + {}] += data[ptr]".format(sum(counts)))
 
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        self.line_count += 3
+
                         index += 5 + count * 2
                         continue
                     elif re.compile("\[->+->+-<+\]").match(expression):
@@ -109,10 +120,12 @@ class Compiler(object):
                             self.compiled.append(
                                 indent * indent_count + "data[ptr + {}] -= data[ptr]".format(sum(counts)))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        self.line_count += 3
+
                         index += 5 + count * 2
                         continue
 
-            elif op_level > 1 and ''.join(chars[0:3]) == "[-<":
+            elif op_level >= 2 and ''.join(chars[0:3]) == "[-<":
 
                 temp_index = index
                 while self.bf[temp_index] != ']':
@@ -131,6 +144,8 @@ class Compiler(object):
                         else:
                             self.compiled.append(indent * indent_count + "data[ptr - {}] += data[ptr]".format(count))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        self.line_count += 2
+
                         index += 4 + count * 2
                         continue
                     elif re.compile("\[-<+->+\]").match(expression):
@@ -142,6 +157,8 @@ class Compiler(object):
                         else:
                             self.compiled.append(indent * indent_count + "data[ptr - {}] -= data[ptr]".format(count))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        self.line_count += 2
+
                         index += 4 + count * 2
                         continue
                     elif re.compile("\[-<+\+<+\+>+\]").match(expression):
@@ -161,6 +178,8 @@ class Compiler(object):
                             self.compiled.append(
                                 indent * indent_count + "data[ptr - {}] += data[ptr]".format(sum(counts)))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        self.line_count += 3
+
                         index += 5 + count * 2
                         continue
                     elif re.compile("\[-<+-<+->+\]").match(expression):
@@ -180,6 +199,8 @@ class Compiler(object):
                             self.compiled.append(
                                 indent * indent_count + "data[ptr - {}] -= data[ptr]".format(sum(counts)))
                         self.compiled.append(indent * indent_count + "data[ptr] = 0")
+                        self.line_count += 3
+
                         index += 5 + count * 2
                         continue
 
@@ -210,6 +231,8 @@ class Compiler(object):
                             self.compiled.append(
                                 indent * indent_count + "data[ptr] -= {}"
                                 .format(abs(sum_balance)))
+
+                    self.line_count += 1
                     sum_balance = 0
 
             elif char0 in '<>':
@@ -224,19 +247,25 @@ class Compiler(object):
                         self.compiled.append(indent * indent_count + "ptr += {}".format(location_balance))
                     else:
                         self.compiled.append(indent * indent_count + "ptr -= {}".format(abs(location_balance)))
+
+                    self.line_count += 1
                     location_balance = 0
 
             elif char0 == '.':
                 self.compiled.append(indent * indent_count + "print(chr(data[ptr] % 256), end='')")
+                self.line_count += 1
 
             elif char0 == ',':
                 self.compiled.append(indent * indent_count + "data[ptr] = input('Slot {}: '.format(ptr))")
+                self.line_count += 1
                 if cap:
                     self.compiled.append(
                         indent * indent_count + "data[ptr] = input('Slot {}: '.format(ptr)) % " + str(cap))
+                    self.line_count += 1
 
             elif char0 == '[':
                 self.compiled.append(indent * indent_count + "while data[ptr] != 0:")
+                self.line_count += 1
                 indent_count += 1
 
             elif char0 == ']':
@@ -245,3 +274,6 @@ class Compiler(object):
             index += 1
 
         self.compiled = "\n".join(self.compiled)
+        self.compiled += "\n"
+
+        self.log = "Condensed {} bf characters into {} lines of Python at optimization level {}".format(len(self.bf), self.line_count, op_level)
