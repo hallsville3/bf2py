@@ -276,4 +276,5 @@ class Compiler(object):
         self.compiled = "\n".join(self.compiled)
         self.compiled += "\n"
 
-        self.log = "Condensed {} bf characters into {} lines of Python at optimization level {}".format(len(self.bf), self.line_count, op_level)
+        self.log = "Converted {} bf characters into {} lines of Python at optimization level {}"
+        self.log.format(len(self.bf), self.line_count, op_level)
