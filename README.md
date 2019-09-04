@@ -1,6 +1,9 @@
 # bf2py
-Converts BrainFuck programs into equivelant concise Python programs.
+Converts BrainFuck programs into equivalent concise Python programs.
 
-Includes basic conversion as well as an optimization for consecutive + and - characters.
+Includes basic conversion as well as several optimization levels described below.
 
-Also includes optimizations for several common bracketed expressions.
+Optimization Levels
+ 0: No Optimization
+ 1: Basic +- and <> Condensing and [-]
+ 2: Single and Double movement [->+<], [-<+>], [->-<], [-<->] and [->+>+<<], [->->-<<], [-<+<+>>], [-<-<->>]
