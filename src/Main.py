@@ -38,3 +38,5 @@ compiler.compile(op_level=optimization_level, cap=0)
 
 print(compiler.compiled)
 print(compiler.log)
+
+compiler.save('compiled.py')
