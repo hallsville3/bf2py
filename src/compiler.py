@@ -16,7 +16,7 @@ class Compiler(object):
     def save(self, filename):
         # Saves the converted BF program without the log
         if self.compiled is None:
-            raise IllegalStateException("A cannot be saved before compiling.")
+            raise RuntimeError("A cannot be saved before compiling.")
         else:
             with open(filename, 'w') as f:
                 for line in self.compiled:
