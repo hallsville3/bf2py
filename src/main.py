@@ -31,12 +31,16 @@ Cap
     An optional parameter that allows the user to cap the value of the cells
 """
 
-if (len(sys.argv) < 3):
+if (len(sys.argv) < 2):
     print(f"Usage: python3 {sys.argv[0]} filename optimization_level")
     sys.exit(1)
 
 compiler = Compiler(sys.argv[1])
-optimization_level = int(sys.argv[2])
+
+if (len(sys.argv) > 2):
+    optimization_level = int(sys.argv[2])
+else:
+    optimization_level = 2
 
 compiler.compile(op_level=optimization_level, cap=0)
 
