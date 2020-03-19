@@ -1,4 +1,5 @@
 from compiler import Compiler
+import sys
 
 """
 Sample program: +++++[->+>+<<]>>[-<<+>>]
@@ -30,10 +31,13 @@ Cap
     An optional parameter that allows the user to cap the value of the cells
 """
 
-optimization_level = 2
+if (len(sys.argv) < 3):
+    print(f"Usage: python3 {sys.argv[0]} filename optimization_level")
+    sys.exit(1)
 
+compiler = Compiler(sys.argv[1])
+optimization_level = int(sys.argv[2])
 
-compiler = Compiler('example.bf')
 compiler.compile(op_level=optimization_level, cap=0)
 
 print(compiler.compiled)
