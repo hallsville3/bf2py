@@ -33,7 +33,7 @@ Cap
 optimization_level = 2
 
 
-compiler = Compiler("+++++[->+>+<<]>>[-<<+>>]")
+compiler = Compiler('example.bf')
 compiler.compile(op_level=optimization_level, cap=0)
 
 print(compiler.compiled)

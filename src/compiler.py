@@ -7,7 +7,10 @@ def clean(bf):
 
 
 class Compiler(object):
-    def __init__(self, bf):
+    def __init__(self, filename):
+        #Open the given file and read the bf data. Then clean it
+        with open(filename, 'r') as f:
+            bf = f.readline()
         self.bf = clean(bf)
         self.compiled = None
         self.log = ""
