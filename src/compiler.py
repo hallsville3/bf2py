@@ -10,7 +10,8 @@ class Compiler(object):
     def __init__(self, filename):
         #Open the given file and read the bf data. Then clean it
         with open(filename, 'r') as f:
-            bf = f.readline()
+            bf = f.readlines()
+            bf = ''.join(bf).replace('\n', '')
         self.bf = clean(bf)
         self.compiled = None
         self.log = ""
